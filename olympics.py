@@ -35,7 +35,12 @@ class Country():
                 'medals_bronze':last_olympics_data_bronze_medals_won_count}
     
     def last_olympics_medals_by_sport(self):
-        medals_by_sport = self.last_olympics_data.groupby(["Sport","Medal"]).count().reset_index().pivot("Sport","Medal","index").fillna(0)
+        medals_by_sport = self.last_olympics_data
+        medals_by_sport = medals_by_sport[~medals_by_sport.Medal.isnull()]
+        medals_by_sport["unique_medals"] = medals_by_sport["Event"].astype(str)+" "+medals_by_sport["Medal"].astype(str)
+        medals_by_sport = medals_by_sport.drop_duplicates("unique_medals")
+
+        medals_by_sport = medals_by_sport.groupby(["Sport","Medal"]).count().reset_index().pivot("Sport","Medal","index").fillna(0)
         medals_by_sport["total"] = medals_by_sport.sum(1)
         medals_by_sport = medals_by_sport.sort_values("total",ascending=True)
         del medals_by_sport["total"]
@@ -43,7 +48,7 @@ class Country():
 
     def last_olympics_medals_by_athlete(self):
         medal_map = {'Gold':1,'Silver':2,'Bronze':3}
-        medals_by_athlete = self.last_olympics_data[["Name","Sex","Height","Weight","Sport","Medal"]]
+        medals_by_athlete = self.last_olympics_data[["Name","Sex","Height","Weight","Sport","Event","Medal"]]
         medals_by_athlete["key"] = medals_by_athlete["Name"].astype(str)+medals_by_athlete["Sport"].astype(str)+medals_by_athlete["Medal"].astype(str)
         medals_by_athlete = medals_by_athlete.drop_duplicates("key")
         medals_by_athlete = medals_by_athlete[~medals_by_athlete.Medal.isnull()]
@@ -64,13 +69,24 @@ class Country():
         return self.historical_olympics_data
 
     def historical_olympics_data_medals_per_year(self):
-        hist_data = self.historical_olympics_data.groupby(["Year","olympics"]).count()["Medal"].reset_index()
+        hist_data = self.historical_olympics_data
+        hist_data = hist_data[~hist_data.Medal.isnull()]
+        hist_data["unique_medals"] = hist_data["Event"].astype(str)+" "+hist_data["Medal"].astype(str)+" "+hist_data["Year"].astype(str)
+        hist_data = hist_data.drop_duplicates("unique_medals")
+
+        hist_data = hist_data.groupby(["Year","Medal"]).count().reset_index().pivot("Year","Medal","index").fillna(0)
         olympics_years = pd.DataFrame({'Year':range(1896,2020,4)})
-        hist_data = olympics_years.merge(hist_data,on="Year",how="left").set_index("Year")["Medal"]
+        hist_data = olympics_years.merge(hist_data,on="Year",how="left").set_index("Year")
         return hist_data
 
     def historical_olympics_data_medals_per_year_by_sport(self,sport):
-        hist_data = self.historical_olympics_data[self.historical_olympics_data.Sport==sport].groupby(["Year","olympics"]).count()["Medal"].reset_index()
+        hist_data = self.historical_olympics_data
+        hist_data = hist_data[~hist_data.Medal.isnull()]
+        hist_data["unique_medals"] = hist_data["Event"].astype(str)+" "+hist_data["Medal"].astype(str)+" "+hist_data["Year"].astype(str)
+        hist_data = hist_data.drop_duplicates("unique_medals")
+
+
+        hist_data = hist_data[hist_data.Sport==sport].groupby(["Year","Medal"]).count().reset_index().pivot("Year","Medal","index").fillna(0)
         olympics_years = pd.DataFrame({'Year':range(1896,2020,4)})
-        hist_data = olympics_years.merge(hist_data,on="Year",how="left").set_index("Year")["Medal"]
+        hist_data = olympics_years.merge(hist_data,on="Year",how="left").set_index("Year")#["Medal"]
         return hist_data
