@@ -112,4 +112,4 @@ elif app_mode==False:
 	 including all the Games from Athens 1896 to Rio 2016.\
 	 The data contains 271116 rows and 15 columns.\
 	 Each row corresponds to an individual athlete competing in an individual Olympic event (athlete-events). ")
-	st.write("https://medium.com/@fbarajasar/visualizing-the-olympic-games-history-using-streamlit-fc1dbb6f480e")
+	#st.write("https://medium.com/@fbarajasar/visualizing-the-olympic-games-history-using-streamlit-fc1dbb6f480e")
