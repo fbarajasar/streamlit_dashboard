@@ -15,8 +15,6 @@ def save_to_sql(data, conn):
      if_exists = "replace")
     
 
-
-
 def clean_data_and_add_columns(data):
     medal_map = {'Gold':3,'Silver':2,'Bronze':1}
     data["medals_numeric"] = data["Medal"].map(medal_map)
@@ -33,6 +31,28 @@ def create_sql_indices(conn):
     sql = ("CREATE INDEX year_index ON data (Year);")
     cursor.execute(sql)    
     
+
+
+
+def get_female_athletes_pct_global_histogram(year):
+    data = pd.read_sql("SELECT Year,Sex,region,ID FROM data WHERE Year={}".format(year),conn)
+    male_vs_female_athletes = data.groupby(["region","Sex"]).count()["ID"].reset_index().pivot(index="region",columns="Sex",values="ID").fillna(0)#
+    male_vs_female_athletes["total"] = male_vs_female_athletes.sum(1)
+    for i in male_vs_female_athletes:
+        male_vs_female_athletes[i] = (male_vs_female_athletes[i]/male_vs_female_athletes["total"])*100
+    del male_vs_female_athletes["total"]
+    male_vs_female_athletes["female_pct_bucket"] = pd.cut(male_vs_female_athletes["F"],bins=range(0,100,10))
+    male_vs_female_athletes = male_vs_female_athletes.groupby("female_pct_bucket").count()["F"]
+    male_vs_female_athletes.index = male_vs_female_athletes.index.astype(str).str.replace(", ","-")\
+    .str.replace("]","%").str.replace("(","")
+    return male_vs_female_athletes
+
+
+
+
+
+
+
 if __name__ == '__main__':
     #CREATE CONNECTION TO DB
     conn = sqlite3.connect("summer_olympics.db")
@@ -46,4 +66,16 @@ if __name__ == '__main__':
     save_to_sql(data, conn)
     #CREATE INDEX
     create_sql_indices(conn)
-  
+    #CREATE PCT WOMEN TABLE
+    all_data = pd.DataFrame()
+    for i in range(1896,2020,4):
+        try:
+            data = pd.DataFrame({"percentage":get_female_athletes_pct_global_histogram(i),"year":i})
+            all_data = all_data.append(data)
+        except:
+            pass
+
+    table_of_years_vs_perceantages_of_women = all_data.reset_index()\
+    .pivot(index="female_pct_bucket",columns="year",values="percentage").to_sql(name = "pct_women_global", con = conn,
+     if_exists = "replace")
+    ##########################

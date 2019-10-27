@@ -1,7 +1,7 @@
 import pandas as pd
 import sqlite3
 import numpy as np
-#CONNECT TO DB
+
 conn = sqlite3.connect("summer_olympics.db", check_same_thread=False)
 regions = pd.read_csv("noc_regions.csv").set_index("region")["NOC"].to_dict()
 regions_list = np.array(list(regions.keys()))
@@ -12,10 +12,7 @@ class Country():
     def __init__(self,country):
         self.country = country
         self.noc = regions[country]        
-
         self.__db_conn = conn    
-
-    
 
     def last_olympics_data(self,year):
 
@@ -44,7 +41,7 @@ class Country():
         medals_by_sport["total"] = medals_by_sport.sum(1)
         medals_by_sport = medals_by_sport.sort_values("total",ascending=True)
         del medals_by_sport["total"]
-        return medals_by_sport
+        return medals_by_sport[["Gold","Silver","Bronze"]]
 
     def last_olympics_medals_by_athlete(self):
         medal_map = {'Gold':1,'Silver':2,'Bronze':3}
@@ -100,9 +97,13 @@ class Country():
         del hist_data["total"]
         return hist_data.tail(20)
 
+    def get_histogram(self,metric_val,_range,year_a,year_b,sex):
 
-    def get_histogram(self,metric_val,_range,year_a,year_b):
         hist_data = self.historical_olympics_data
+        if sex!="Both":
+            hist_data = hist_data[hist_data.Sex==sex]
+
+
         weight_height_year_a = hist_data[hist_data.Year==year_a][["Height","Weight","Age"]].dropna()
         weight_height_year_b = hist_data[hist_data.Year==year_b][["Height","Weight","Age"]].dropna()
 
@@ -113,3 +114,6 @@ class Country():
         results_b = pd.cut(b[year_b],bins=_range).value_counts().sort_index()
         
         return results_a,results_b
+
+    def get_pct_women_athletes_globally(self,year_a,year_b):
+        return pd.read_sql("SELECT * FROM pct_women_global",con=conn,index_col="female_pct_bucket")[[year_a,year_b]]
