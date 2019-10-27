@@ -7,6 +7,15 @@ def open_csvs_and_merge():
     data =  data.merge(regions,how='left',on='NOC')
     return data
 
+def filter_by_season(data):
+    return data[data.Season=='Summer']
+
+def save_to_sql(data, conn):
+    data.sort_values("NOC",ascending=True).to_sql(name = "data", con = conn,
+     if_exists = "replace")
+    
+
+
 
 def clean_data_and_add_columns(data):
     medal_map = {'Gold':3,'Silver':2,'Bronze':1}
@@ -15,12 +24,7 @@ def clean_data_and_add_columns(data):
     data.loc[data['olympics'] == "Stockholm 1956"] = "Melbourne 1956" 
     return data   
 
-def filter_by_season(data):
-    return data[data.Season=='Summer']
 
-def save_to_sql(data, conn):
-    data.sort_values("NOC",ascending=True).to_sql(name = "data", con = conn, if_exists = "replace")
-    
 def create_sql_indices(conn):
     cursor = conn.cursor()
     sql = ("CREATE INDEX country ON data (NOC);")
