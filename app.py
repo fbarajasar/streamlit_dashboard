@@ -2,7 +2,6 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 from olympics import *
-import seaborn
 import matplotlib.pyplot as plt
 import warnings
 warnings.simplefilter("ignore")
@@ -10,11 +9,8 @@ warnings.simplefilter("ignore")
 plt.style.use('fivethirtyeight')
 st.sidebar.title('Olympics Data')
 
-
-
-selected_country = st.sidebar.selectbox('Select Country',regions_list,index=193)
-
 selected_year = st.sidebar.number_input('Select Competition Year',1896,2016,2016,step=4)
+selected_country = st.sidebar.selectbox('Select Country',regions_list,index=193)
 
 
 country = Country(selected_country)
@@ -25,7 +21,7 @@ SPORTS = country.historical_sports_list
 
 
 st.title(df.City.unique()[0]+" "+str(selected_year))
-st.title("Country: "+selected_country)
+st.title("Team: "+selected_country)
 
 
 df = country.last_olympics_medals_by_sport().astype(int)
@@ -61,5 +57,30 @@ st.subheader('Medals By Sport Over Time by '+selected_country)
 selected_sport = st.selectbox(label="Select Sport", options=SPORTS,index=2)
 plt.figure()
 country.historical_olympics_data_medals_per_year_by_sport(selected_sport).plot(kind='bar', stacked=True)
+plt.tight_layout()
+st.pyplot()
+
+
+st.subheader('Top 20 Sports Historically by '+selected_country+' by number of Medals')
+plt.figure()
+country.top_sports_historically().plot(kind='barh', stacked=True)
+plt.tight_layout()
+st.pyplot()
+
+#scatter plot height weight comparing years in different colors
+
+#ranking by discipline to which country is the first in each discipline
+st.subheader('Compare Distribution of Athlete Metrics')
+
+year_a = st.number_input('First Year',1896,2016,1992,step=4)
+year_b = st.number_input('Second Year',1896,2016,2016,step=4)
+metric_val = st.selectbox(label="Select Metric", options=["Age","Height","Weight"],index=0)
+
+metric_ranges = {"Age":range(15,65,5),'Height':range(140,225,5),'Weight':range(40,125,5)}
+
+plt.figure()
+histogram_charts = country.get_histogram(metric_val=metric_val,_range=metric_ranges[metric_val],year_a=year_a,year_b=year_b)
+histogram_charts[0].plot(kind='bar',width=0.5,color='grey',legend=True,title=metric_val+" Distribution "+str(year_a)+" vs "+str(year_b))
+histogram_charts[1].plot(kind='bar',width=0.20,color='red',legend=True)
 plt.tight_layout()
 st.pyplot()

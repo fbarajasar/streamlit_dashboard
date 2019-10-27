@@ -73,7 +73,6 @@ class Country():
         hist_data = hist_data[~hist_data.Medal.isnull()]
         hist_data["unique_medals"] = hist_data["Event"].astype(str)+" "+hist_data["Medal"].astype(str)+" "+hist_data["Year"].astype(str)
         hist_data = hist_data.drop_duplicates("unique_medals")
-
         hist_data = hist_data.groupby(["Year","Medal"]).count().reset_index().pivot("Year","Medal","index").fillna(0)
         olympics_years = pd.DataFrame({'Year':range(1896,2020,4)})
         hist_data = olympics_years.merge(hist_data,on="Year",how="left").set_index("Year")
@@ -84,9 +83,33 @@ class Country():
         hist_data = hist_data[~hist_data.Medal.isnull()]
         hist_data["unique_medals"] = hist_data["Event"].astype(str)+" "+hist_data["Medal"].astype(str)+" "+hist_data["Year"].astype(str)
         hist_data = hist_data.drop_duplicates("unique_medals")
-
-
         hist_data = hist_data[hist_data.Sport==sport].groupby(["Year","Medal"]).count().reset_index().pivot("Year","Medal","index").fillna(0)
         olympics_years = pd.DataFrame({'Year':range(1896,2020,4)})
         hist_data = olympics_years.merge(hist_data,on="Year",how="left").set_index("Year")#["Medal"]
         return hist_data
+
+    def top_sports_historically(self):
+        hist_data = self.historical_olympics_data
+        hist_data = hist_data[~hist_data.Medal.isnull()]
+        hist_data["unique_medals"] = hist_data["Event"].astype(str)+" "+hist_data["Medal"].astype(str)+" "+hist_data["Year"].astype(str)
+        hist_data = hist_data.drop_duplicates("unique_medals")
+        hist_data = hist_data.groupby(["Sport","Medal"]).count().reset_index()\
+        .pivot("Sport","Medal","unique_medals").fillna(0)#.sort_values("Gold",ascending=True).tail(10).plot(kind='barh',stacked=True)
+        hist_data["total"] = hist_data.sum(1)
+        hist_data = hist_data.sort_values("total",ascending=True)[["Bronze","Silver","Gold","total"]]
+        del hist_data["total"]
+        return hist_data.tail(20)
+
+
+    def get_histogram(self,metric_val,_range,year_a,year_b):
+        hist_data = self.historical_olympics_data
+        weight_height_year_a = hist_data[hist_data.Year==year_a][["Height","Weight","Age"]].dropna()
+        weight_height_year_b = hist_data[hist_data.Year==year_b][["Height","Weight","Age"]].dropna()
+
+        a = pd.DataFrame({year_a:weight_height_year_a[metric_val]}).reset_index().astype(int)
+        b = pd.DataFrame({year_b:weight_height_year_b[metric_val]}).reset_index().astype(int)
+
+        results_a = pd.cut(a[year_a],bins=_range).value_counts().sort_index()
+        results_b = pd.cut(b[year_b],bins=_range).value_counts().sort_index()
+        
+        return results_a,results_b
