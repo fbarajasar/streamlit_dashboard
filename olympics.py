@@ -46,7 +46,7 @@ class Country():
     def last_olympics_medals_by_athlete(self):
         medal_map = {'Gold':1,'Silver':2,'Bronze':3}
         medals_by_athlete = self.last_olympics_data[["Name","Sex","Height","Weight","Sport","Event","Medal"]]
-        medals_by_athlete["key"] = medals_by_athlete["Name"].astype(str)+medals_by_athlete["Sport"].astype(str)+medals_by_athlete["Medal"].astype(str)
+        medals_by_athlete["key"] = medals_by_athlete["Name"].astype(str)+medals_by_athlete["Event"].astype(str)+medals_by_athlete["Medal"].astype(str)
         medals_by_athlete = medals_by_athlete.drop_duplicates("key")
         medals_by_athlete = medals_by_athlete[~medals_by_athlete.Medal.isnull()]
         medals_by_athlete["numeric_score"] = medals_by_athlete.Medal.map(medal_map)
@@ -61,7 +61,8 @@ class Country():
     def historical_olympics_data(self):
         sql_historical_date_query = "SELECT * FROM data WHERE NOC='{}'".format(self.noc)
         self.historical_olympics_data =  pd.read_sql(sql_historical_date_query,self.__db_conn)
-        self.historical_sports_list = self.historical_olympics_data.Sport.unique()
+        self.historical_sports_list = list(self.historical_olympics_data.Sport.unique())
+        self.historical_sports_list.append("All")
         self.historical_sports_list.sort()
         return self.historical_olympics_data
 
@@ -117,3 +118,10 @@ class Country():
 
     def get_pct_women_athletes_globally(self,year_a,year_b):
         return pd.read_sql("SELECT * FROM pct_women_global",con=conn,index_col="female_pct_bucket")[[year_a,year_b]]
+
+    def get_pct_women_athletes_by_sport(self,list_of_sports):
+        return pd.read_sql("SELECT * FROM pct_of_female_athletes_by_sport",con=conn,index_col="Year")[list_of_sports]
+
+
+    def get_country_medals_by_sport_historically(self,sport_selected):
+        return pd.read_sql("SELECT * FROM country_medals_by_sport_historically",con=conn,index_col="region")[sport_selected].dropna().sort_values(ascending=False)

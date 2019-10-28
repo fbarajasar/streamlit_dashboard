@@ -50,6 +50,43 @@ def get_female_athletes_pct_global_histogram(year):
 
 
 
+def get_pct_of_female_athletes_by_sport():
+
+    unique_sports = pd.read_sql("SELECT DISTINCT(Sport) FROM data",con=conn).Sport.unique()
+
+    all_data = pd.DataFrame()
+    for sport in unique_sports:    
+        try:
+            data = pd.read_sql("SELECT * FROM data WHERE Sport='{}'".format(sport),con=conn)
+            women_men = data.groupby(["Year","Sex"]).count().reset_index().pivot(index="Year",columns="Sex",values="ID")
+            women_men["total"] = women_men.sum(1)
+            for i in women_men.columns:
+                women_men[i] = (women_men[i]/women_men["total"])*100
+            women_men = women_men[["F"]]
+            women_men["Sport"] = sport
+            all_data = all_data.append(women_men)        
+        except:
+            pass
+
+    data = pd.read_sql("SELECT * FROM data".format(sport),con=conn)
+    women_men = data.groupby(["Year","Sex"]).count().reset_index().pivot(index="Year",columns="Sex",values="ID")
+    women_men["total"] = women_men.sum(1)
+    for i in women_men.columns:
+        women_men[i] = (women_men[i]/women_men["total"])*100
+    women_men = women_men[["F"]]
+    women_men["Sport"] = "All"
+    all_data = all_data.append(women_men)
+    all_data = all_data.pivot(columns="Sport",values="F")
+    all_data.to_sql(name="pct_of_female_athletes_by_sport",con=conn,if_exists = "replace")
+
+
+def get_country_medals_by_sport_historically():
+    data = pd.read_sql("SELECT * FROM data",con=conn)
+    data["unique_medals"] = data["Event"].astype(str)+" "+data["Medal"].astype(str)+" "+data["Year"].astype(str)
+    data = data.drop_duplicates("unique_medals")
+    data = data[data.Medal=="Gold"]
+    country_medals_by_sport_historically = data.groupby(["Sport","region"]).count()["Medal"].reset_index()\
+    .pivot(index="region",columns="Sport",values="Medal").to_sql(name="country_medals_by_sport_historically",con=conn,if_exists = "replace")
 
 
 
@@ -78,4 +115,9 @@ if __name__ == '__main__':
     table_of_years_vs_perceantages_of_women = all_data.reset_index()\
     .pivot(index="female_pct_bucket",columns="year",values="percentage").to_sql(name = "pct_women_global", con = conn,
      if_exists = "replace")
+
+    #CREATE PCT FEMALE ATHLETES BY SPORT TABLE
+    get_pct_of_female_athletes_by_sport()    
     ##########################
+    #CREATE medals_by_sport_historically TABLE
+    get_country_medals_by_sport_historically()
