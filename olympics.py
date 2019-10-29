@@ -41,7 +41,7 @@ class Country():
         medals_by_sport["total"] = medals_by_sport.sum(1)
         medals_by_sport = medals_by_sport.sort_values("total",ascending=True)
         del medals_by_sport["total"]
-        return medals_by_sport[["Gold","Silver","Bronze"]]
+        return medals_by_sport
 
     def last_olympics_medals_by_athlete(self):
         medal_map = {'Gold':1,'Silver':2,'Bronze':3}
@@ -122,6 +122,20 @@ class Country():
     def get_pct_women_athletes_by_sport(self,list_of_sports):
         return pd.read_sql("SELECT * FROM pct_of_female_athletes_by_sport",con=conn,index_col="Year")[list_of_sports]
 
-
     def get_country_medals_by_sport_historically(self,sport_selected):
         return pd.read_sql("SELECT * FROM country_medals_by_sport_historically",con=conn,index_col="region")[sport_selected].dropna().sort_values(ascending=False)
+
+
+
+    def country_medals(self,sport, region_list):
+        years = pd.DataFrame({"Year":range(1896,2020,4)})
+        if len(region_list)==1:
+            d = pd.read_sql("SELECT * FROM data WHERE Sport='{}' AND region='{}'".format(sport,region_list[0]),con=conn)
+        else:
+            d = pd.read_sql("SELECT * FROM data WHERE Sport='{}' AND region in {}".format(sport,tuple(region_list)),con=conn)
+        d["key"] = d["Year"].astype(str)+d["region"].astype(str)+d["Event"].astype(str)
+        d = d.drop_duplicates("key")
+        d = d[~d.Medal.isnull()]
+        d = d.groupby(["Year","region"]).count().reset_index().pivot(index="Year",columns="region",values="Medal").reset_index()
+        d = years.merge(d,on="Year",how="left").set_index("Year").fillna(0).astype(int)
+        return d
