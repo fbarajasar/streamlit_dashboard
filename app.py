@@ -4,10 +4,16 @@ import numpy as np
 from olympics import *
 import matplotlib.pyplot as plt
 import warnings
+import math
+
+
 warnings.simplefilter("ignore")
 plt.style.use('fivethirtyeight')
-
 st.sidebar.title('Olympics Data')
+MEDALS_COLOR_MAP = {'Gold':'#d4af37','Silver':'#aaa9ad','Bronze':'#cd7f32'}
+MEDALS_COLUMN_MAP = {'Gold':1,'Silver':2,'Bronze':3}
+NUMBER_TO_MEDALS_MAP = {1:'Gold',2:'Silver',3:'Bronze'}
+
 
 def vals_from_dict(m):
     f = []
@@ -45,8 +51,10 @@ if last_years_metrics==True:
 				st.write(x,":",dct[x])
 		else:
 
+			df.columns = df.columns.map(MEDALS_COLUMN_MAP).sort_values()
+			df.columns = df.columns.map(NUMBER_TO_MEDALS_MAP)
 
-			df.plot(kind='barh',stacked=True,figsize=(8,5),color=["#d4af37","#aaa9ad","#cd7f32"])
+			df.plot(kind='barh',stacked=True,figsize=(8,5),color=[MEDALS_COLOR_MAP.get(x, '#333333') for x in df.columns])
 			plt.tight_layout()
 			st.pyplot()
 
@@ -67,21 +75,32 @@ if last_years_metrics==True:
 		st.subheader('Medals Won Over Time by '+selected_country)
 
 		plt.figure()
-		country.historical_olympics_data_medals_per_year()[["Gold","Silver","Bronze"]].plot(kind='bar', stacked=True,color = ["#d4af37","#aaa9ad","#cd7f32"])
+		df = country.historical_olympics_data_medals_per_year()
+		df.columns = df.columns.map(MEDALS_COLUMN_MAP).sort_values()
+		df.columns = df.columns.map(NUMBER_TO_MEDALS_MAP)
+		df.plot(kind='bar', stacked=True,color =[MEDALS_COLOR_MAP.get(x, '#333333') for x in df.columns])
 		plt.tight_layout()
 		st.pyplot()
 
 		st.subheader('Medals By Sport Over Time by '+selected_country)
 		selected_sport = st.selectbox(label="Select Sport", options=SPORTS,index=3)
 		plt.figure()
-		country.historical_olympics_data_medals_per_year_by_sport(selected_sport)[["Gold","Silver","Bronze"]].plot(kind='bar', stacked=True,color = ["#d4af37","#aaa9ad","#cd7f32"])
+		df = country.historical_olympics_data_medals_per_year_by_sport(selected_sport)
+		df.columns = df.columns.map(MEDALS_COLUMN_MAP).sort_values()
+		df.columns = df.columns.map(NUMBER_TO_MEDALS_MAP)
+
+		df.plot(kind='bar', stacked=True,color = [MEDALS_COLOR_MAP.get(x, '#333333') for x in df.columns])
 		plt.tight_layout()
 		st.pyplot()
 
 
 		st.subheader('Top 20 Sports Historically by '+selected_country+' by number of Medals')
 		plt.figure()
-		country.top_sports_historically()[["Gold","Silver","Bronze"]].plot(kind='barh', stacked=True,color = ["#d4af37","#aaa9ad","#cd7f32"])
+		df = country.top_sports_historically()
+		df.columns = df.columns.map(MEDALS_COLUMN_MAP).sort_values()
+		df.columns = df.columns.map(NUMBER_TO_MEDALS_MAP)
+
+		df.plot(kind='barh', stacked=True,color = [MEDALS_COLOR_MAP.get(x, '#333333') for x in df.columns])
 		plt.tight_layout()
 		st.pyplot()
 
