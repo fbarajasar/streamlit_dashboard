@@ -15,7 +15,6 @@ class Country():
         self.__db_conn = conn    
 
     def last_olympics_data(self,year):
-
         self.__sql_last_date_query = "SELECT * FROM data WHERE NOC='{}' AND Year = {}".format(self.noc,year)
         self.last_olympics_data =  pd.read_sql(self.__sql_last_date_query,self.__db_conn)
         return self.last_olympics_data
@@ -36,7 +35,6 @@ class Country():
         medals_by_sport = medals_by_sport[~medals_by_sport.Medal.isnull()]
         medals_by_sport["unique_medals"] = medals_by_sport["Event"].astype(str)+" "+medals_by_sport["Medal"].astype(str)
         medals_by_sport = medals_by_sport.drop_duplicates("unique_medals")
-
         medals_by_sport = medals_by_sport.groupby(["Sport","Medal"]).count().reset_index().pivot("Sport","Medal","index").fillna(0)
         medals_by_sport["total"] = medals_by_sport.sum(1)
         medals_by_sport = medals_by_sport.sort_values("total",ascending=True)
@@ -52,10 +50,8 @@ class Country():
         medals_by_athlete["numeric_score"] = medals_by_athlete.Medal.map(medal_map)
         medals_by_athlete.sort_values("numeric_score",ascending=True,inplace=True)
         medals_by_athlete["new_index"] = range(len(medals_by_athlete))
-
         del medals_by_athlete["numeric_score"]
         del medals_by_athlete["key"]
-
         return medals_by_athlete.set_index("new_index")
 
     def historical_olympics_data(self):
@@ -83,7 +79,7 @@ class Country():
         hist_data = hist_data.drop_duplicates("unique_medals")
         hist_data = hist_data[hist_data.Sport==sport].groupby(["Year","Medal"]).count().reset_index().pivot("Year","Medal","index").fillna(0)
         olympics_years = pd.DataFrame({'Year':range(1896,2020,4)})
-        hist_data = olympics_years.merge(hist_data,on="Year",how="left").set_index("Year")#["Medal"]
+        hist_data = olympics_years.merge(hist_data,on="Year",how="left").set_index("Year")
         return hist_data
 
     def top_sports_historically(self):
@@ -91,8 +87,7 @@ class Country():
         hist_data = hist_data[~hist_data.Medal.isnull()]
         hist_data["unique_medals"] = hist_data["Event"].astype(str)+" "+hist_data["Medal"].astype(str)+" "+hist_data["Year"].astype(str)
         hist_data = hist_data.drop_duplicates("unique_medals")
-        hist_data = hist_data.groupby(["Sport","Medal"]).count().reset_index()\
-        .pivot("Sport","Medal","unique_medals").fillna(0)#.sort_values("Gold",ascending=True).tail(10).plot(kind='barh',stacked=True)
+        hist_data = hist_data.groupby(["Sport","Medal"]).count().reset_index().pivot("Sport","Medal","unique_medals").fillna(0)
         hist_data["total"] = hist_data.sum(1)
         hist_data = hist_data.sort_values("total",ascending=True)[["Bronze","Silver","Gold","total"]]
         del hist_data["total"]
@@ -103,17 +98,12 @@ class Country():
         hist_data = self.historical_olympics_data
         if sex!="Both":
             hist_data = hist_data[hist_data.Sex==sex]
-
-
         weight_height_year_a = hist_data[hist_data.Year==year_a][["Height","Weight","Age"]].dropna()
         weight_height_year_b = hist_data[hist_data.Year==year_b][["Height","Weight","Age"]].dropna()
-
-        a = pd.DataFrame({year_a:weight_height_year_a[metric_val]}).reset_index().astype(int)
-        b = pd.DataFrame({year_b:weight_height_year_b[metric_val]}).reset_index().astype(int)
-
-        results_a = pd.cut(a[year_a],bins=_range).value_counts().sort_index()
-        results_b = pd.cut(b[year_b],bins=_range).value_counts().sort_index()
-        
+        year_a_df = pd.DataFrame({year_a:weight_height_year_a[metric_val]}).reset_index().astype(int)
+        year_b_df = pd.DataFrame({year_b:weight_height_year_b[metric_val]}).reset_index().astype(int)
+        results_a = pd.cut(year_a_df[year_a],bins=_range).value_counts().sort_index()
+        results_b = pd.cut(year_b_df[year_b],bins=_range).value_counts().sort_index()
         return results_a,results_b
 
     def get_pct_women_athletes_globally(self,year_a,year_b):
@@ -125,17 +115,15 @@ class Country():
     def get_country_medals_by_sport_historically(self,sport_selected):
         return pd.read_sql("SELECT * FROM country_medals_by_sport_historically",con=conn,index_col="region")[sport_selected].dropna().sort_values(ascending=False)
 
-
-
     def country_medals(self,sport, region_list):
         years = pd.DataFrame({"Year":range(1896,2020,4)})
         if len(region_list)==1:
-            d = pd.read_sql("SELECT * FROM data WHERE Sport='{}' AND region='{}'".format(sport,region_list[0]),con=conn)
+            df = pd.read_sql("SELECT * FROM data WHERE Sport='{}' AND region='{}'".format(sport,region_list[0]),con=conn)
         else:
-            d = pd.read_sql("SELECT * FROM data WHERE Sport='{}' AND region in {}".format(sport,tuple(region_list)),con=conn)
-        d["key"] = d["Year"].astype(str)+d["region"].astype(str)+d["Event"].astype(str)
-        d = d.drop_duplicates("key")
-        d = d[~d.Medal.isnull()]
-        d = d.groupby(["Year","region"]).count().reset_index().pivot(index="Year",columns="region",values="Medal").reset_index()
-        d = years.merge(d,on="Year",how="left").set_index("Year").fillna(0).astype(int)
-        return d
+            df = pd.read_sql("SELECT * FROM data WHERE Sport='{}' AND region in {}".format(sport,tuple(region_list)),con=conn)
+        df["key"] = df["Year"].astype(str)+df["region"].astype(str)+df["Event"].astype(str)
+        df = df.drop_duplicates("key")
+        df = df[~df.Medal.isnull()]
+        df = df.groupby(["Year","region"]).count().reset_index().pivot(index="Year",columns="region",values="Medal").reset_index()
+        df = years.merge(df,on="Year",how="left").set_index("Year").fillna(0).astype(int)
+        return df
