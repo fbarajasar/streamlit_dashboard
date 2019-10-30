@@ -14,7 +14,7 @@ https://www.kaggle.com/heesoo37/120-years-of-olympic-history-athletes-and-result
 
 
 ## The Idea
-The app should allows users to interact with the dataset and make it easy for them to extract and share insights about the Olympic Games.
+The app should allow users to interact with the dataset and make it easy for them to extract and share insights about the Olympic Games.
 
 ## The Pipeline
 ![alt text](https://github.com/fbarajasar/olympics_project/blob/master/pipeline.png)
@@ -22,7 +22,7 @@ The app should allows users to interact with the dataset and make it easy for th
 3. Store data in an SQLite DB.
 4. Do some precalculations on the data and store them as tables in the DB.
 4. Code a series of Python functions that query the DB and filter and aggregate the data in different ways
-5. Use Streamlit to create a user interface that connects to the Python functions coded on the back-end. Those function return data that is converted into charts and displayed in the application.
+5. Use Streamlit to create a user interface that connects to the Python functions coded on the back-end. Those functions return data that is converted into charts and displayed on the application.
 
 
 ## Libraries Used in the Project
