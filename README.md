@@ -8,7 +8,9 @@ https://olympics-dashboard.herokuapp.com/
 
 ## The Dataset
 This is a historical dataset on the modern Olympic Games, including all the Games from Athens 1896 to Rio 2016. The data contains 271116 rows and 15 columns. Each row corresponds to an individual athlete competing in an individual Olympic event (athlete-events). For this exercise, I will focus on the Summer Olympic Games.
-The Idea
+
+## Dataset Source: 
+
 
 ## The Idea
 The app should allows users to interact with the dataset and make it easy for them to extract and share insights about the Olympic Games with other app users.
