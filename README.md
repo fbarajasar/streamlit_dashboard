@@ -40,5 +40,4 @@ Streamlit is an open-source Python library that makes it easy to build beautiful
 ## For Deployment
 ### The App is deployed here:
 https://olympics-dashboard.herokuapp.com/
-### The app source code lives here: 
-https://github.com/fbarajasar/olympics_project
+
