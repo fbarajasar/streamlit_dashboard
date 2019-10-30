@@ -1,5 +1,5 @@
 # Visualizing the Olympic Games History
-
+![alt text](https://github.com/fbarajasar/olympics_project/blob/master/jesse-owens-berlin.jpg)
 
 ## Live App Prototype
 https://olympics-dashboard.herokuapp.com/
