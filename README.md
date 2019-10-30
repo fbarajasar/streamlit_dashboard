@@ -17,6 +17,7 @@ https://www.kaggle.com/heesoo37/120-years-of-olympic-history-athletes-and-result
 The app should allows users to interact with the dataset and make it easy for them to extract and share insights about the Olympic Games with other app users.
 
 ## The Pipeline
+![alt text](https://github.com/fbarajasar/olympics_project/blob/master/pipeline.jpg)
 1. Extract and Clean the data from the CSV
 3. Store data in an SQLite DB.
 4. Do some precalculations on the data and store them as tables in the db.
