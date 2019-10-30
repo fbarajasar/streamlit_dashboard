@@ -11,7 +11,7 @@ This is a historical dataset on the modern Olympic Games, including all the Game
 The Idea
 
 ## The Idea
-The plan is to build a tool that allows users to interact with the dataset and make it easy for them to extract and share insights about the Olympic Games with other app users.
+The app should allows users to interact with the dataset and make it easy for them to extract and share insights about the Olympic Games with other app users.
 
 ## The Pipeline
 1. Extract and Clean the data from the CSV
